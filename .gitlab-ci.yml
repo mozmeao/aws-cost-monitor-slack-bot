@@ -9,3 +9,6 @@ run:
   script:
     - docker build -t aws_cost --pull .
     - docker run -e SLACK_TOKEN aws_cost
+    - curl "${DMS_URL}"
+  only:
+    - schedules
