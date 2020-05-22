@@ -1,0 +1,11 @@
+stages:
+  - run
+
+run:
+  stage: run
+  tags:
+    - mozmeao
+    - aws
+  script:
+    - docker build -t aws_cost --pull .
+    - docker run -e SLACK_TOKEN aws_cost
