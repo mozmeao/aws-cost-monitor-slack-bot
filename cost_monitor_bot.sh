@@ -24,10 +24,6 @@ aws ce get-cost-and-usage \
 cat ${AWS_REPLY} | jq -r '.ResultsByTime[] | .TimePeriod.Start + " " + .Total.BlendedCost.Amount' > ${PROCESSED_REPLY}
 cat ${PROCESSED_REPLY} | cut -d " " -f 2 > ${NUMBERS_ONLY}
 
-TOTAL_COST=$(cat ${PROCESSED_REPLY} | cut -d " " -f 2 | paste -sd+ | bc)
-MEDIAN=$(cat ${NUMBERS_ONLY} | sort -n | awk '{arr[NR]=$1}
-   END { if (NR%2==1) print arr[(NR+1)/2]; else print (arr[NR/2]+arr[NR/2+1])/2}')
-
 COST_YESTERDAY=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n 1))
 COST_MOD=$(format_currency $(add_lines $(cat ${NUMBERS_ONLY} | tail -n $(date +%d --date="-1 days"))))
 COST_YOD=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n +32 | paste -sd+ | bc))
