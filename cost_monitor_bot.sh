@@ -25,10 +25,10 @@ cat ${AWS_REPLY} | jq -r '.ResultsByTime[] | .TimePeriod.Start + " " + .Total.Bl
 cat ${PROCESSED_REPLY} | cut -d " " -f 2 > ${NUMBERS_ONLY}
 
 COST_YESTERDAY=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n 1))
-COST_MOD=$(format_currency $(add_lines $(cat ${NUMBERS_ONLY} | tail -n $(date +%d --date="-1 days"))))
-COST_YOD=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n +32 | paste -sd+ | bc))
+COST_MTD=$(format_currency $(add_lines $(cat ${NUMBERS_ONLY} | tail -n $(date +%d --date="-1 days"))))
+COST_YTD=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n +32 | paste -sd+ | bc))
 
-MSG="AWS Spendings ➤ Yesterday: \$${COST_YESTERDAY} | MOD \$${COST_MOD} | YOD \$${COST_YOD}"
+MSG="AWS Spendings ➤ Yesterday: \$${COST_YESTERDAY} | MTD \$${COST_MTD} | YTD \$${COST_YTD}"
 gnuplot -e """
   set xdata time;
   set timefmt '%Y-%m-%d';
