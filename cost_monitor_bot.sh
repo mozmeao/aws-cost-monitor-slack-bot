@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Handle different locales and number representations
+export LC_ALL=C
+
 AWS_REPLY=$(mktemp)
 PROCESSED_REPLY=$(mktemp)
 NUMBERS_ONLY=$(mktemp)
@@ -28,13 +31,17 @@ COST_YESTERDAY=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n 1))
 COST_MTD=$(format_currency $(add_lines $(cat ${NUMBERS_ONLY} | tail -n $(date +%d --date="-1 days"))))
 COST_YTD=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n +32 | paste -sd+ | bc))
 
+# Calculate MIN and MAX values for the last 30 days
+MAX_VALUE=$(($(printf "%.0f" $(cat ${PROCESSED_REPLY} | tail -n 30 | cut -d " " -f 2 | sort -rn  | head -n 1)) + 50))
+MIN_VALUE=$(($(printf "%.0f" $(cat ${PROCESSED_REPLY} | tail -n 30 | cut -d " " -f 2 | sort -n  | head -n 1)) - 50))
+
 MSG="AWS Spendings ➤ Yesterday: \$${COST_YESTERDAY} | MTD \$${COST_MTD} | YTD \$${COST_YTD}"
 gnuplot -e """
   set xdata time;
   set timefmt '%Y-%m-%d';
   set ylabel 'Cost ($)';
   set xrange [\"$(date +%Y-%m-%d --date='-30 days')\":\"$(date +%Y-%m-%d)\"];
-  set yrange [100:300];
+  set yrange [${MIN_VALUE}:${MAX_VALUE}];
   set grid;
   set style line 1 lc rgb '#0060ad' lt 1 lw 2 pt 7 pi -1 ps 1.5;
   set terminal png size 800,300;
