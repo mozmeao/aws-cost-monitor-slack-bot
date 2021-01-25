@@ -4,6 +4,10 @@ set -euo pipefail
 # Handle different locales and number representations
 export LC_ALL=C
 
+# Which metric to query / plot.
+# Documentation https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/ce-advanced.html
+AWS_METRIC=${AWS_METRIC:-AmortizedCost}
+
 AWS_REPLY=$(mktemp)
 PROCESSED_REPLY=$(mktemp)
 NUMBERS_ONLY=$(mktemp)
@@ -21,10 +25,10 @@ format_currency() {
 aws ce get-cost-and-usage \
     --time-period Start=$(date +"%Y-12-01" --date="-1 year"),End=$(date +"%Y-%m-%d") \
     --granularity=DAILY  \
-    --metrics BlendedCost > ${AWS_REPLY}
+    --metrics ${AWS_METRIC} > ${AWS_REPLY}
 
 
-cat ${AWS_REPLY} | jq -r '.ResultsByTime[] | .TimePeriod.Start + " " + .Total.BlendedCost.Amount' > ${PROCESSED_REPLY}
+cat ${AWS_REPLY} | jq -r '.ResultsByTime[] | .TimePeriod.Start + " " + .Total.'"${AWS_METRIC}"'.Amount' > ${PROCESSED_REPLY}
 cat ${PROCESSED_REPLY} | cut -d " " -f 2 > ${NUMBERS_ONLY}
 
 COST_YESTERDAY=$(format_currency $(cat ${NUMBERS_ONLY} | tail -n 1))
